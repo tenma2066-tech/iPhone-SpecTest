@@ -2,8 +2,13 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// GitHub Pages ではリポジトリ名のサブパス配信になるため base を切り替える。
+// ローカル開発/プレビューは '/'（PAGES_BASE 未設定）。
+const base = process.env.PAGES_BASE || '/'
+
 // https://vite.dev/config/
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
