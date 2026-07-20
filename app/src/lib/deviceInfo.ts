@@ -1,13 +1,16 @@
 // iOS Safari を主対象にした端末情報の収集モジュール。
 // すべてブラウザ内で完結し、外部送信は行わない。
 // 取得できない値は null を返し、UI 側で「Webの制限」として明示する。
+import { guessDevice } from '../data/devices';
 
 export type SpecItem = {
   key: string;
   label: string;
   value: string | null;
-  /** 値が取れなかった理由（Safari の制限など）。value が null のとき表示する。 */
+  /** 補足（Safari の制限や推定根拠など）。既定では value が null のとき表示する。 */
   note?: string;
+  /** true の場合は value があっても note を表示する。 */
+  alwaysShowNote?: boolean;
 };
 
 export type DeviceInfo = {
@@ -76,6 +79,22 @@ export async function collectDeviceInfo(): Promise<DeviceInfo> {
   const webgl = getWebGLRenderer();
   const storage = await getStorageEstimate();
 
+  // 機種推定（物理解像度＋DPRを内蔵DBと照合）
+  const guess = guessDevice(physicalW, physicalH, dpr);
+  let modelValue: string | null = null;
+  let modelNote =
+    'Safari は正確な機種名を返しません。画面解像度から推定しています';
+  if (guess.candidates.length === 1) {
+    const d = guess.candidates[0];
+    modelValue = d.name;
+    modelNote = `${d.chip} 搭載・${d.releaseYear}年〜 / 解像度 ${guess.matchedResolution} から推定`;
+  } else if (guess.candidates.length > 1) {
+    modelValue = guess.candidates.map((d) => d.name).join(' / ');
+    modelNote = `解像度 ${guess.matchedResolution} が一致する機種（複数候補）`;
+  } else {
+    modelNote = `該当機種が内蔵DBに見つかりません（解像度 ${physicalW} × ${physicalH} px）`;
+  }
+
   const hasWebGPU = 'gpu' in navigator;
   const hasWebGL = (() => {
     try {
@@ -99,9 +118,10 @@ export async function collectDeviceInfo(): Promise<DeviceInfo> {
     },
     {
       key: 'model',
-      label: '機種',
-      value: null,
-      note: 'Safari は正確な機種名を返しません（後日、指紋情報＋DB照合で推定予定）',
+      label: '機種（推定）',
+      value: modelValue,
+      note: modelNote,
+      alwaysShowNote: true,
     },
     {
       key: 'screen-logical',

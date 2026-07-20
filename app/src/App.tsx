@@ -121,7 +121,7 @@ function App() {
                     <span className="spec-value spec-unavailable">取得不可</span>
                   )}
                 </div>
-                {!item.value && item.note && (
+                {item.note && (!item.value || item.alwaysShowNote) && (
                   <span className="spec-note">{item.note}</span>
                 )}
               </li>
