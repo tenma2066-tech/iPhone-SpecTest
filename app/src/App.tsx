@@ -2,10 +2,20 @@ import { useEffect, useState } from 'react';
 import { collectDeviceInfo, type DeviceInfo } from './lib/deviceInfo';
 import {
   runBenchmark,
-  type BenchResult,
+  type BenchOutcome,
   type BenchProgress,
 } from './lib/benchmark';
 import './App.css';
+
+function Stars({ n }: { n: number }) {
+  if (n <= 0) return <span className="stars stars-na">—</span>;
+  return (
+    <span className="stars" aria-label={`${n} / 5`}>
+      {'★'.repeat(n)}
+      <span className="stars-empty">{'★'.repeat(5 - n)}</span>
+    </span>
+  );
+}
 
 function App() {
   const [info, setInfo] = useState<DeviceInfo | null>(null);
@@ -13,8 +23,7 @@ function App() {
 
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState<BenchProgress | null>(null);
-  const [results, setResults] = useState<BenchResult[] | null>(null);
-  const [total, setTotal] = useState<number | null>(null);
+  const [outcome, setOutcome] = useState<BenchOutcome | null>(null);
 
   useEffect(() => {
     collectDeviceInfo()
@@ -24,13 +33,11 @@ function App() {
 
   async function handleRun() {
     setRunning(true);
-    setResults(null);
-    setTotal(null);
+    setOutcome(null);
     setProgress({ phase: '準備中…', ratio: 0 });
     try {
-      const { results, total } = await runBenchmark(setProgress);
-      setResults(results);
-      setTotal(total);
+      const result = await runBenchmark(setProgress);
+      setOutcome(result);
     } finally {
       setRunning(false);
     }
@@ -56,7 +63,9 @@ function App() {
         <div className="bench-head">
           <div>
             <h2 className="section-title">性能ベンチマーク</h2>
-            <p className="section-sub">CPU・メモリを実測してスコア化します</p>
+            <p className="section-sub">
+              CPU・メモリ・GPU を各3回計測し中央値で判定します
+            </p>
           </div>
           <button
             type="button"
@@ -64,7 +73,7 @@ function App() {
             onClick={handleRun}
             disabled={running}
           >
-            {running ? '計測中…' : results ? 'もう一度' : 'ベンチ開始'}
+            {running ? '計測中…' : outcome ? 'もう一度' : 'ベンチ開始'}
           </button>
         </div>
 
@@ -80,25 +89,42 @@ function App() {
           </div>
         )}
 
-        {results && total !== null && (
+        {outcome && (
           <div className="bench-results">
             <div className="total-score">
-              <span className="total-num">{total.toLocaleString()}</span>
+              <span className="tier-badge">{outcome.tier.label}</span>
+              <span className="total-num">
+                {outcome.total.toLocaleString()}
+              </span>
               <span className="total-label">総合スコア</span>
+              <span className="tier-desc">{outcome.tier.description}</span>
+              <span className={`consistency consistency-${outcome.consistency.level}`}>
+                計測信頼度: {outcome.consistency.label}
+              </span>
             </div>
             <ul className="spec-list">
-              {results.map((r) => (
+              {outcome.results.map((r) => (
                 <li key={r.key} className="spec-row">
                   <div className="spec-head">
                     <span className="spec-label">{r.label}</span>
-                    <span className="spec-value">{r.score.toLocaleString()}</span>
+                    <span className="spec-value">
+                      {r.available ? r.score.toLocaleString() : '—'}
+                    </span>
+                  </div>
+                  <div className="rating-row">
+                    <Stars n={r.rating.stars} />
+                    <span className="rating-label">{r.rating.label}</span>
+                    {r.available && r.cvPercent > 0 && (
+                      <span className="cv-label">±{r.cvPercent}%</span>
+                    )}
                   </div>
                   <span className="spec-note">{r.metric}</span>
                 </li>
               ))}
             </ul>
             <p className="bench-caveat">
-              ※ 発熱・省電力状態・他アプリの影響でスコアは変動します。参考値としてご覧ください。
+              ※ スコアとランクは目安です。発熱・省電力状態・他アプリの影響で変動します。
+              「計測信頼度」が低い場合は数回試して中央的な結果をご覧ください。
             </p>
           </div>
         )}

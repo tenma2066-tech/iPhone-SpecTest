@@ -189,6 +189,17 @@
   padding: 20px 16px 16px;
 }
 
+.tier-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
 .total-num {
   font-size: 3rem;
   font-weight: 800;
@@ -200,6 +211,68 @@
 .total-label {
   margin-top: 4px;
   font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.tier-desc {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-align: center;
+}
+
+.consistency {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.consistency-good {
+  background: color-mix(in srgb, #34c759 18%, transparent);
+  color: #2a9d47;
+}
+
+.consistency-fair {
+  background: color-mix(in srgb, #ff9500 20%, transparent);
+  color: #c26a00;
+}
+
+.consistency-poor {
+  background: color-mix(in srgb, #ff3b30 20%, transparent);
+  color: #d0342b;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.stars {
+  color: #ffb800;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+.stars-empty {
+  color: var(--border);
+}
+
+.stars-na {
+  color: var(--muted);
+}
+
+.rating-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cv-label {
+  margin-left: auto;
+  font-size: 0.72rem;
   color: var(--muted);
 }
 
