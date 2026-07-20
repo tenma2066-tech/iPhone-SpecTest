@@ -1,32 +1,39 @@
-# React + TypeScript + Vite
+# iPhone SpecTest（app）
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+iPhone のスペック表示と性能ベンチマークを行う Web アプリ（PWA）。
+Safari で開くだけで使え、ホーム画面に追加すればアプリのように起動できる。
 
-Currently, two official plugins are available:
+## 機能
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **スペック表示** — OS・画面解像度・DPR・CPUコア数・GPU・ストレージ見積り等をブラウザ API から取得。取得できない値は「取得不可」と理由を明示。
+- **機種推定** — 物理解像度 × DPR を内蔵DB（`src/data/devices.ts`）と照合し、機種名・チップ・発売年を推定。
+- **性能ベンチマーク** — CPU シングル/マルチ（Web Workers）・メモリ帯域を実測してスコア化。
 
-## React Compiler
+すべて端末内で完結し、情報は外部に送信されない。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 開発
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev -- --host   # 実機の Safari から LAN 経由で開く
+npm run build           # 本番ビルド（dist/）
+npm run preview         # ビルド結果をローカル確認
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 技術
+
+Vite + React + TypeScript / Web Workers / vite-plugin-pwa
+
+## 構成
+
+```
+src/
+  App.tsx              画面
+  lib/
+    deviceInfo.ts      端末情報の収集＋機種推定の組み立て
+    benchmark.ts       ベンチマークの司令塔
+    benchKernels.ts    CPU/メモリ計測カーネル（メイン/ワーカー共通）
+    bench.worker.ts    マルチコア計測用 Web Worker
+  data/
+    devices.ts         iPhone 機種スペックDB
+```
